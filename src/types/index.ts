@@ -17,6 +17,8 @@ export interface Loan {
   dueDate?: string;
   monthlyPayment?: number;
   lender: string;
+  type: 'lent' | 'borrowed';
+  status?: 'pending' | 'paid';
 }
 
 export interface Budget {

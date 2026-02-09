@@ -24,32 +24,20 @@ const Analytics = () => {
       .sort((a, b) => b.value - a.value);
   }, [data.transactions]);
 
-  const monthlyData = useMemo(() => {
-    const monthlyMap = new Map<string, { income: number; expense: number }>();
-    
-    data.transactions.forEach(t => {
-      const date = new Date(t.date);
-      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      const current = monthlyMap.get(monthKey) || { income: 0, expense: 0 };
-      
-      if (t.type === 'income') {
-        current.income += t.amount;
-      } else {
-        current.expense += t.amount;
-      }
-      
-      monthlyMap.set(monthKey, current);
+  const last7DaysData = useMemo(() => {
+    const days = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() - (6 - i));
+      const dateStr = date.toISOString().split('T')[0];
+      const spending = data.transactions
+        .filter(t => t.type === 'expense' && t.date === dateStr)
+        .reduce((sum, t) => sum + t.amount, 0);
+      return {
+        day: date.toLocaleDateString('en-US', { weekday: 'short' }),
+        spending: spending,
+      };
     });
-
-    return Array.from(monthlyMap.entries())
-      .map(([month, data]) => ({
-        month: new Date(month + '-01').toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-        income: data.income,
-        expense: data.expense,
-        net: data.income - data.expense,
-      }))
-      .sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime())
-      .slice(-6);
+    return days;
   }, [data.transactions]);
 
   const stats = useMemo(() => {
@@ -81,12 +69,12 @@ const Analytics = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-4xl font-bold text-white">Analytics</h1>
-        <p className="text-white/80 mt-2">Insights into your spending patterns</p>
+        <h1 className="text-4xl font-bold text-gray-900 mb-2">Financial Analytics</h1>
+        <p className="text-gray-600">Visualize your spending patterns and trends.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white/90 backdrop-blur-sm rounded-lg p-6 shadow-lg">
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm">Total Income</p>
@@ -130,8 +118,8 @@ const Analytics = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white/90 backdrop-blur-sm rounded-lg p-6 shadow-lg">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Spending by Category</h2>
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Spending by Category</h2>
           {categorySpending.length === 0 ? (
             <p className="text-gray-500 text-center py-8">No spending data available</p>
           ) : (
@@ -157,28 +145,29 @@ const Analytics = () => {
           )}
         </div>
 
-        <div className="bg-white/90 backdrop-blur-sm rounded-lg p-6 shadow-lg">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Monthly Overview</h2>
-          {monthlyData.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No monthly data available</p>
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Last 7 Days Spending</h2>
+          {last7DaysData.length === 0 ? (
+            <p className="text-gray-500 text-center py-8">No spending data available</p>
           ) : (
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                <Legend />
-                <Bar dataKey="income" fill="#10B981" name="Income" />
-                <Bar dataKey="expense" fill="#EF4444" name="Expenses" />
+              <BarChart data={last7DaysData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="day" stroke="#9ca3af" fontSize={12} />
+                <YAxis stroke="#9ca3af" fontSize={12} />
+                <Tooltip 
+                  formatter={(value: number) => formatCurrency(value)}
+                  contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                />
+                <Bar dataKey="spending" fill="#8b5cf6" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
         </div>
       </div>
 
-      <div className="bg-white/90 backdrop-blur-sm rounded-lg p-6 shadow-lg">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Top Spending Categories</h2>
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+        <h2 className="text-xl font-bold text-gray-900 mb-4">Top Spending Categories</h2>
         {topCategories.length === 0 ? (
           <p className="text-gray-500 text-center py-8">No spending data available</p>
         ) : (

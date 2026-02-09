@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { formatCurrency, formatDate } from '../utils/dateUtils';
 import Modal from '../components/Modal';
-import { Plus, Edit, Trash2, PiggyBank, TrendingUp } from 'lucide-react';
+import { Plus, Edit, Trash2, Shield, Plane, Laptop } from 'lucide-react';
 
 const Savings = () => {
   const { data, addSavings, updateSavings, deleteSavings } = useApp();
@@ -18,6 +18,15 @@ const Savings = () => {
 
   const totalSavings = data.savings.reduce((sum, s) => sum + s.amount, 0);
   const totalGoals = data.savings.reduce((sum, s) => sum + (s.goal || 0), 0);
+  const overallProgress = totalGoals > 0 ? (totalSavings / totalGoals) * 100 : 0;
+
+  const getIcon = (name: string) => {
+    const lowerName = name.toLowerCase();
+    if (lowerName.includes('emergency') || lowerName.includes('fund')) return Shield;
+    if (lowerName.includes('vacation') || lowerName.includes('trip')) return Plane;
+    if (lowerName.includes('laptop') || lowerName.includes('computer')) return Laptop;
+    return Shield;
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,12 +75,12 @@ const Savings = () => {
   };
 
   const handleDelete = (savingsId: string) => {
-    if (confirm('Are you sure you want to delete this savings entry?')) {
+    if (confirm('Are you sure you want to delete this savings goal?')) {
       deleteSavings(savingsId);
     }
   };
 
-  const handleAddAmount = (savingsId: string) => {
+  const handleAddMoney = (savingsId: string) => {
     const savings = data.savings.find(s => s.id === savingsId);
     if (savings) {
       const amount = prompt(`Current amount: ${formatCurrency(savings.amount)}\nEnter amount to add:`);
@@ -81,66 +90,60 @@ const Savings = () => {
     }
   };
 
-  const handleSubtractAmount = (savingsId: string) => {
-    const savings = data.savings.find(s => s.id === savingsId);
-    if (savings) {
-      const amount = prompt(`Current amount: ${formatCurrency(savings.amount)}\nEnter amount to subtract:`);
-      if (amount && !isNaN(parseFloat(amount))) {
-        updateSavings(savingsId, { amount: Math.max(0, savings.amount - parseFloat(amount)) });
-      }
-    }
-  };
-
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold text-white">Savings (Cash)</h1>
-          <p className="text-white/80 mt-2">
-            Total Savings: {formatCurrency(totalSavings)}
-            {totalGoals > 0 && ` | Goals: ${formatCurrency(totalGoals)}`}
-          </p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Savings Goals</h1>
+          <p className="text-gray-600">Track your cash savings and financial goals.</p>
         </div>
         <button
           onClick={() => {
             resetForm();
             setIsModalOpen(true);
           }}
-          className="bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center space-x-2"
+          className="bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center space-x-2 shadow-sm"
         >
           <Plus className="h-5 w-5" />
-          <span>Add Savings</span>
+          <span>New Goal</span>
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="bg-white/90 backdrop-blur-sm rounded-lg p-6 shadow-lg border-2 border-green-500">
-          <div className="flex items-center justify-between mb-4">
-            <PiggyBank className="h-12 w-12 text-green-600" />
-            <div className="text-right">
-              <p className="text-sm text-gray-600">Total Savings</p>
-              <p className="text-3xl font-bold text-green-600">{formatCurrency(totalSavings)}</p>
+      {/* Total Savings Summary */}
+      {data.savings.length > 0 && (
+        <div className="bg-gradient-to-r from-purple-600 to-purple-700 rounded-xl p-8 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-purple-200 text-sm mb-2">Total Cash Savings</p>
+              <p className="text-4xl font-bold mb-2">{formatCurrency(totalSavings)}</p>
+              {totalGoals > 0 && (
+                <p className="text-purple-200 text-sm">
+                  {overallProgress.toFixed(0)}% of your {formatCurrency(totalGoals)} goal reached
+                </p>
+              )}
             </div>
+            {totalGoals > 0 && (
+              <div className="text-right">
+                <p className="text-purple-200 text-sm mb-2">Overall Progress</p>
+                <div className="w-48 bg-purple-500 rounded-full h-3 mb-2">
+                  <div
+                    className="bg-white h-3 rounded-full transition-all"
+                    style={{ width: `${Math.min(overallProgress, 100)}%` }}
+                  />
+                </div>
+                <p className="text-white font-semibold">{overallProgress.toFixed(0)}%</p>
+              </div>
+            )}
           </div>
         </div>
+      )}
 
-        {totalGoals > 0 && (
-          <div className="bg-white/90 backdrop-blur-sm rounded-lg p-6 shadow-lg border-2 border-blue-500">
-            <div className="flex items-center justify-between mb-4">
-              <TrendingUp className="h-12 w-12 text-blue-600" />
-              <div className="text-right">
-                <p className="text-sm text-gray-600">Total Goals</p>
-                <p className="text-3xl font-bold text-blue-600">{formatCurrency(totalGoals)}</p>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
+      {/* Individual Savings Goals */}
       {data.savings.length === 0 ? (
-        <div className="bg-white/90 backdrop-blur-sm rounded-lg p-12 text-center shadow-lg">
-          <PiggyBank className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-          <p className="text-gray-500 text-lg">No savings tracked yet</p>
+        <div className="bg-white rounded-xl p-12 text-center shadow-sm border border-gray-100">
+          <Shield className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+          <p className="text-gray-500 text-lg">No savings goals tracked yet</p>
           <p className="text-gray-400 mt-2">Start tracking your cash savings</p>
         </div>
       ) : (
@@ -148,85 +151,58 @@ const Savings = () => {
           {data.savings.map((savings) => {
             const progress = savings.goal ? (savings.amount / savings.goal) * 100 : 0;
             const isGoalReached = savings.goal && savings.amount >= savings.goal;
+            const Icon = getIcon(savings.name);
 
             return (
-              <div key={savings.id} className="bg-white/90 backdrop-blur-sm rounded-lg p-6 shadow-lg">
+              <div key={savings.id} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
                 <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold text-gray-800">{savings.name}</h3>
-                    {savings.description && (
-                      <p className="text-sm text-gray-600 mt-1">{savings.description}</p>
-                    )}
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                      <Icon className="h-6 w-6 text-gray-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">{savings.name}</h3>
+                      <p className="text-sm text-gray-600">{formatCurrency(savings.amount)} saved</p>
+                    </div>
                   </div>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleEdit(savings.id)}
-                      className="text-blue-600 hover:text-blue-800"
-                    >
-                      <Edit className="h-5 w-5" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(savings.id)}
-                      className="text-red-600 hover:text-red-800"
-                    >
-                      <Trash2 className="h-5 w-5" />
-                    </button>
-                  </div>
+                  {savings.goal && (
+                    <p className="text-sm text-gray-600">Target {formatCurrency(savings.goal)}</p>
+                  )}
                 </div>
 
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-gray-600">Current Amount</span>
-                      <span className="text-2xl font-bold text-green-600">
-                        {formatCurrency(savings.amount)}
-                      </span>
+                {savings.goal && (
+                  <div className="mb-4">
+                    <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                      <div
+                        className={`h-2 rounded-full transition-all ${
+                          isGoalReached ? 'bg-green-500' : 'bg-blue-500'
+                        }`}
+                        style={{ width: `${Math.min(progress, 100)}%` }}
+                      />
                     </div>
-
-                    {savings.goal && (
-                      <>
-                        <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
-                          <div
-                            className={`h-3 rounded-full transition-all ${
-                              isGoalReached ? 'bg-green-600' : 'bg-blue-600'
-                            }`}
-                            style={{ width: `${Math.min(progress, 100)}%` }}
-                          />
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Goal: {formatCurrency(savings.goal)}</span>
-                          <span className={`font-semibold ${isGoalReached ? 'text-green-600' : 'text-blue-600'}`}>
-                            {progress.toFixed(1)}%
-                            {isGoalReached && ' ✓'}
-                          </span>
-                        </div>
-                        {savings.amount < savings.goal && (
-                          <p className="text-sm text-gray-500 mt-1">
-                            {formatCurrency(savings.goal - savings.amount)} remaining
-                          </p>
-                        )}
-                      </>
-                    )}
+                    <p className="text-xs text-gray-500">{progress.toFixed(0)}% complete</p>
                   </div>
+                )}
 
-                  <div className="flex space-x-2 pt-4 border-t">
-                    <button
-                      onClick={() => handleAddAmount(savings.id)}
-                      className="flex-1 bg-green-100 text-green-700 py-2 px-4 rounded-lg font-semibold hover:bg-green-200 transition-colors"
-                    >
-                      Add
-                    </button>
-                    <button
-                      onClick={() => handleSubtractAmount(savings.id)}
-                      className="flex-1 bg-red-100 text-red-700 py-2 px-4 rounded-lg font-semibold hover:bg-red-200 transition-colors"
-                    >
-                      Subtract
-                    </button>
-                  </div>
-
-                  <p className="text-xs text-gray-500 text-center">
-                    Created: {formatDate(savings.createdAt)}
-                  </p>
+                <div className="flex space-x-2 pt-4 border-t">
+                  <button
+                    onClick={() => handleAddMoney(savings.id)}
+                    className="flex-1 text-blue-600 hover:text-blue-800 py-2 px-4 rounded-lg font-medium hover:bg-blue-50 transition-colors text-sm"
+                  >
+                    Add Money
+                  </button>
+                  <button
+                    onClick={() => handleEdit(savings.id)}
+                    className="flex-1 text-gray-700 hover:text-gray-900 py-2 px-4 rounded-lg font-medium hover:bg-gray-50 transition-colors text-sm"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(savings.id)}
+                    className="text-red-600 hover:text-red-800 p-2"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </button>
                 </div>
               </div>
             );
@@ -240,23 +216,23 @@ const Savings = () => {
           setIsModalOpen(false);
           resetForm();
         }}
-        title={editingSavings ? 'Edit Savings' : 'Add New Savings'}
+        title={editingSavings ? 'Edit Savings Goal' : 'New Savings Goal'}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Savings Name</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Goal Name</label>
             <input
               type="text"
               required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="e.g., Emergency Fund, Vacation Fund"
+              placeholder="e.g., Emergency Fund, Vacation, New Laptop"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Current Amount</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Current Amount (₹)</label>
             <input
               type="number"
               step="0.01"
@@ -268,7 +244,7 @@ const Savings = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Goal Amount (Optional)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Target Amount (₹)</label>
             <input
               type="number"
               step="0.01"
@@ -285,7 +261,7 @@ const Savings = () => {
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={3}
-              placeholder="Add notes about this savings"
+              placeholder="Add notes about this savings goal"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
           </div>
@@ -295,7 +271,7 @@ const Savings = () => {
               type="submit"
               className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-purple-700 transition-colors"
             >
-              {editingSavings ? 'Update' : 'Add'} Savings
+              {editingSavings ? 'Update' : 'Create'} Goal
             </button>
             <button
               type="button"

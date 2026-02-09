@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
+import Transactions from './pages/Transactions';
 import Loans from './pages/Loans';
 import Budget from './pages/Budget';
 import Reminders from './pages/Reminders';
@@ -16,6 +17,7 @@ function App() {
         <Layout>
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/transactions" element={<Transactions />} />
             <Route path="/loans" element={<Loans />} />
             <Route path="/budget" element={<Budget />} />
             <Route path="/reminders" element={<Reminders />} />

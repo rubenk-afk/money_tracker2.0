@@ -69,17 +69,17 @@ const Calendar = () => {
 
   const getDayColor = (amount: number) => {
     if (amount === 0) return 'bg-gray-100';
-    if (amount < 50) return 'bg-green-100';
-    if (amount < 100) return 'bg-yellow-100';
-    if (amount < 200) return 'bg-orange-100';
+    if (amount < 500) return 'bg-green-100';
+    if (amount < 1000) return 'bg-yellow-100';
+    if (amount < 2000) return 'bg-orange-100';
     return 'bg-red-100';
   };
 
   const getTextColor = (amount: number) => {
     if (amount === 0) return 'text-gray-500';
-    if (amount < 50) return 'text-green-700';
-    if (amount < 100) return 'text-yellow-700';
-    if (amount < 200) return 'text-orange-700';
+    if (amount < 500) return 'text-green-700';
+    if (amount < 1000) return 'text-yellow-700';
+    if (amount < 2000) return 'text-orange-700';
     return 'text-red-700';
   };
 
@@ -89,10 +89,8 @@ const Calendar = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold text-white">Calendar</h1>
-          <p className="text-white/80 mt-2">
-            Total spending this month: {formatCurrency(totalMonthSpending)}
-          </p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Spending Calendar</h1>
+          <p className="text-gray-600">View your daily spending at a glance.</p>
         </div>
         <button
           onClick={() => {
@@ -105,14 +103,14 @@ const Calendar = () => {
             });
             setIsModalOpen(true);
           }}
-          className="bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center space-x-2"
+          className="bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center space-x-2 shadow-sm"
         >
           <Plus className="h-5 w-5" />
           <span>Add Transaction</span>
         </button>
       </div>
 
-      <div className="bg-white/90 backdrop-blur-sm rounded-lg p-6 shadow-lg">
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={handlePreviousMonth}
@@ -120,7 +118,7 @@ const Calendar = () => {
           >
             <ChevronLeft className="h-6 w-6 text-gray-700" />
           </button>
-          <h2 className="text-2xl font-bold text-gray-800">
+          <h2 className="text-2xl font-bold text-gray-900">
             {format(currentDate, 'MMMM yyyy')}
           </h2>
           <button
@@ -132,8 +130,8 @@ const Calendar = () => {
         </div>
 
         <div className="grid grid-cols-7 gap-2 mb-2">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-            <div key={day} className="text-center font-semibold text-gray-600 py-2">
+          {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map((day) => (
+            <div key={day} className="text-center font-semibold text-gray-600 py-2 text-sm">
               {day}
             </div>
           ))}
@@ -152,22 +150,25 @@ const Calendar = () => {
               <button
                 key={day.toISOString()}
                 onClick={() => handleDateClick(day)}
-                className={`aspect-square p-2 rounded-lg border-2 transition-all hover:scale-105 ${
-                  isCurrentMonth ? getDayColor(amount) : 'bg-gray-50'
-                } ${isTodayDate ? 'border-purple-500 border-4' : 'border-transparent'}`}
+                className={`aspect-square p-2 rounded-lg transition-all hover:bg-gray-50 ${
+                  isCurrentMonth ? 'bg-white' : 'bg-gray-50'
+                } ${isTodayDate ? 'ring-2 ring-purple-500' : ''}`}
               >
                 <div className="flex flex-col h-full">
                   <span
-                    className={`text-sm font-semibold ${
-                      isCurrentMonth ? 'text-gray-800' : 'text-gray-400'
+                    className={`text-sm font-semibold mb-1 ${
+                      isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
                     } ${isTodayDate ? 'text-purple-600' : ''}`}
                   >
                     {format(day, 'd')}
                   </span>
                   {amount > 0 && (
-                    <span className={`text-xs font-bold mt-auto ${getTextColor(amount)}`}>
-                      {formatCurrency(amount)}
-                    </span>
+                    <>
+                      <span className={`text-xs font-bold ${getTextColor(amount)}`}>
+                        {formatCurrency(amount)}
+                      </span>
+                      <div className={`mt-1 h-1 rounded ${getDayColor(amount).replace('bg-', 'bg-').replace('-100', '-500')}`} />
+                    </>
                   )}
                 </div>
               </button>
@@ -175,24 +176,6 @@ const Calendar = () => {
           })}
         </div>
 
-        <div className="mt-6 pt-6 border-t flex items-center justify-center space-x-6">
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-green-100 rounded" />
-            <span className="text-sm text-gray-600">&lt; $50</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-yellow-100 rounded" />
-            <span className="text-sm text-gray-600">$50 - $100</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-orange-100 rounded" />
-            <span className="text-sm text-gray-600">$100 - $200</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-red-100 rounded" />
-            <span className="text-sm text-gray-600">&gt; $200</span>
-          </div>
-        </div>
       </div>
 
       <Modal
@@ -217,7 +200,7 @@ const Calendar = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Amount (₹)</label>
             <input
               type="number"
               step="0.01"

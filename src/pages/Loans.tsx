@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { formatCurrency, formatDate } from '../utils/dateUtils';
 import Modal from '../components/Modal';
-import { Plus, Edit, Trash2, TrendingUp } from 'lucide-react';
+import { Plus, Edit, Trash2, ArrowRight, ArrowLeft, User } from 'lucide-react';
 
 const Loans = () => {
   const { data, addLoan, updateLoan, deleteLoan } = useApp();
@@ -18,7 +18,15 @@ const Loans = () => {
     dueDate: '',
     monthlyPayment: '',
     lender: '',
+    type: 'borrowed' as 'lent' | 'borrowed',
+    status: 'pending' as 'pending' | 'paid',
   });
+
+  const lentLoans = data.loans.filter(l => l.type === 'lent');
+  const borrowedLoans = data.loans.filter(l => l.type === 'borrowed');
+
+  const totalLent = lentLoans.reduce((sum, l) => sum + l.remainingAmount, 0);
+  const totalBorrowed = borrowedLoans.reduce((sum, l) => sum + l.remainingAmount, 0);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +39,8 @@ const Loans = () => {
       dueDate: formData.dueDate || undefined,
       monthlyPayment: formData.monthlyPayment ? parseFloat(formData.monthlyPayment) : undefined,
       lender: formData.lender,
+      type: formData.type,
+      status: formData.status,
     };
 
     if (editingLoan) {
@@ -53,6 +63,8 @@ const Loans = () => {
       dueDate: '',
       monthlyPayment: '',
       lender: '',
+      type: 'borrowed',
+      status: 'pending',
     });
     setEditingLoan(null);
   };
@@ -69,6 +81,8 @@ const Loans = () => {
         dueDate: loan.dueDate || '',
         monthlyPayment: loan.monthlyPayment?.toString() || '',
         lender: loan.lender,
+        type: loan.type || 'borrowed',
+        status: loan.status || 'pending',
       });
       setEditingLoan(loanId);
       setIsModalOpen(true);
@@ -81,104 +95,162 @@ const Loans = () => {
     }
   };
 
-  const totalRemaining = data.loans.reduce((sum, loan) => sum + loan.remainingAmount, 0);
+  const handleMarkAsPaid = (loanId: string) => {
+    updateLoan(loanId, { status: 'paid', remainingAmount: 0 });
+  };
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold text-white">Loans Tracker</h1>
-          <p className="text-white/80 mt-2">Total Remaining: {formatCurrency(totalRemaining)}</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Loans Tracker</h1>
+          <p className="text-gray-600">Track money you owe and money owed to you.</p>
         </div>
         <button
           onClick={() => {
             resetForm();
             setIsModalOpen(true);
           }}
-          className="bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center space-x-2"
+          className="bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center space-x-2 shadow-sm"
         >
           <Plus className="h-5 w-5" />
           <span>Add Loan</span>
         </button>
       </div>
 
-      {data.loans.length === 0 ? (
-        <div className="bg-white/90 backdrop-blur-sm rounded-lg p-12 text-center shadow-lg">
-          <TrendingUp className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-          <p className="text-gray-500 text-lg">No loans tracked yet</p>
-          <p className="text-gray-400 mt-2">Add your first loan to get started</p>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-6">
+          <p className="text-sm text-gray-600 mb-2">You are owed</p>
+          <p className="text-4xl font-bold text-gray-900">{formatCurrency(totalLent)}</p>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {data.loans.map((loan) => {
-            const progress = (1 - loan.remainingAmount / loan.totalAmount) * 100;
-            return (
-              <div key={loan.id} className="bg-white/90 backdrop-blur-sm rounded-lg p-6 shadow-lg">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-800">{loan.name}</h3>
-                    <p className="text-sm text-gray-500">{loan.lender}</p>
+        <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
+          <p className="text-sm text-gray-600 mb-2">You owe</p>
+          <p className="text-4xl font-bold text-gray-900">{formatCurrency(totalBorrowed)}</p>
+        </div>
+      </div>
+
+      {/* Loan Lists */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Lent Loans */}
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div className="flex items-center space-x-2 mb-6">
+            <ArrowRight className="h-5 w-5 text-orange-600" />
+            <h2 className="text-xl font-bold text-gray-900">Lent (Assets)</h2>
+          </div>
+          {lentLoans.length === 0 ? (
+            <p className="text-gray-500 text-center py-8">No loans lent</p>
+          ) : (
+            <div className="space-y-4">
+              {lentLoans.map((loan) => (
+                <div key={loan.id} className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                        <User className="h-5 w-5 text-gray-600" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900">{loan.name}</p>
+                        <p className="text-sm text-gray-500">Due {loan.dueDate ? formatDate(loan.dueDate) : 'N/A'}</p>
+                      </div>
+                    </div>
+                    <p className="text-xl font-bold text-orange-600">{formatCurrency(loan.remainingAmount)}</p>
                   </div>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleEdit(loan.id)}
-                      className="text-blue-600 hover:text-blue-800"
-                    >
-                      <Edit className="h-5 w-5" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(loan.id)}
-                      className="text-red-600 hover:text-red-800"
-                    >
-                      <Trash2 className="h-5 w-5" />
-                    </button>
+                  <div className="flex items-center justify-between">
+                    <span className={`px-3 py-1 rounded text-xs font-medium ${
+                      loan.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-700'
+                    }`}>
+                      {loan.status === 'paid' ? 'Paid' : 'Pending'}
+                    </span>
+                    {loan.status !== 'paid' && (
+                      <button
+                        onClick={() => handleMarkAsPaid(loan.id)}
+                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                      >
+                        Mark as Paid
+                      </button>
+                    )}
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleEdit(loan.id)}
+                        className="text-blue-600 hover:text-blue-800"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(loan.id)}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
-
-                <div className="space-y-3">
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-gray-600">Remaining</span>
-                      <span className="font-semibold">{formatCurrency(loan.remainingAmount)}</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-purple-600 h-2 rounded-full transition-all"
-                        style={{ width: `${progress}%` }}
-                      />
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {formatCurrency(loan.totalAmount - loan.remainingAmount)} paid of {formatCurrency(loan.totalAmount)}
-                    </p>
-                  </div>
-
-                  {loan.interestRate && (
-                    <p className="text-sm text-gray-600">
-                      Interest Rate: <span className="font-semibold">{loan.interestRate}%</span>
-                    </p>
-                  )}
-
-                  {loan.monthlyPayment && (
-                    <p className="text-sm text-gray-600">
-                      Monthly Payment: <span className="font-semibold">{formatCurrency(loan.monthlyPayment)}</span>
-                    </p>
-                  )}
-
-                  {loan.dueDate && (
-                    <p className="text-sm text-gray-600">
-                      Due Date: <span className="font-semibold">{formatDate(loan.dueDate)}</span>
-                    </p>
-                  )}
-
-                  <p className="text-xs text-gray-500">
-                    Started: {formatDate(loan.startDate)}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
+              ))}
+            </div>
+          )}
         </div>
-      )}
+
+        {/* Borrowed Loans */}
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div className="flex items-center space-x-2 mb-6">
+            <ArrowLeft className="h-5 w-5 text-blue-600" />
+            <h2 className="text-xl font-bold text-gray-900">Borrowed (Liabilities)</h2>
+          </div>
+          {borrowedLoans.length === 0 ? (
+            <p className="text-gray-500 text-center py-8">No loans borrowed</p>
+          ) : (
+            <div className="space-y-4">
+              {borrowedLoans.map((loan) => (
+                <div key={loan.id} className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                        <User className="h-5 w-5 text-gray-600" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900">{loan.lender}</p>
+                        <p className="text-sm text-gray-500">Due {loan.dueDate ? formatDate(loan.dueDate) : 'N/A'}</p>
+                      </div>
+                    </div>
+                    <p className="text-xl font-bold text-blue-600">{formatCurrency(loan.remainingAmount)}</p>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className={`px-3 py-1 rounded text-xs font-medium ${
+                      loan.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-700'
+                    }`}>
+                      {loan.status === 'paid' ? 'Paid' : 'Pending'}
+                    </span>
+                    {loan.status !== 'paid' && (
+                      <button
+                        onClick={() => handleMarkAsPaid(loan.id)}
+                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                      >
+                        Mark as Paid
+                      </button>
+                    )}
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleEdit(loan.id)}
+                        className="text-blue-600 hover:text-blue-800"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(loan.id)}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
 
       <Modal
         isOpen={isModalOpen}
@@ -190,23 +262,32 @@ const Loans = () => {
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Loan Name</label>
-            <input
-              type="text"
-              required
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            <label className="block text-sm font-medium text-gray-700 mb-1">Loan Type</label>
+            <select
+              value={formData.type}
+              onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
+            >
+              <option value="borrowed">Borrowed (You owe)</option>
+              <option value="lent">Lent (You are owed)</option>
+            </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Lender</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {formData.type === 'borrowed' ? 'Lender Name' : 'Borrower Name'}
+            </label>
             <input
               type="text"
               required
-              value={formData.lender}
-              onChange={(e) => setFormData({ ...formData, lender: e.target.value })}
+              value={formData.type === 'borrowed' ? formData.lender : formData.name}
+              onChange={(e) => {
+                if (formData.type === 'borrowed') {
+                  setFormData({ ...formData, lender: e.target.value });
+                } else {
+                  setFormData({ ...formData, name: e.target.value });
+                }
+              }}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
           </div>
@@ -282,6 +363,18 @@ const Loans = () => {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <select
+              value={formData.status}
+              onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            >
+              <option value="pending">Pending</option>
+              <option value="paid">Paid</option>
+            </select>
           </div>
 
           <div className="flex space-x-4 pt-4">

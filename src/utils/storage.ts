@@ -6,7 +6,16 @@ export const loadData = (): AppData => {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
     if (data) {
-      return JSON.parse(data);
+      const parsed = JSON.parse(data);
+      // Migrate old loans to include type and status fields
+      if (parsed.loans) {
+        parsed.loans = parsed.loans.map((loan: any) => ({
+          ...loan,
+          type: loan.type || 'borrowed',
+          status: loan.status || 'pending',
+        }));
+      }
+      return parsed;
     }
   } catch (error) {
     console.error('Error loading data from storage:', error);

@@ -103,141 +103,72 @@ const Reminders = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold text-white">Reminders</h1>
-          <p className="text-white/80 mt-2">
-            {upcomingReminders.length > 0 && `${upcomingReminders.length} upcoming reminder${upcomingReminders.length > 1 ? 's' : ''} this week`}
-          </p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Reminders</h1>
+          <p className="text-gray-600">Stay on top of your bills and subscriptions.</p>
         </div>
         <button
           onClick={() => {
             resetForm();
             setIsModalOpen(true);
           }}
-          className="bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center space-x-2"
+          className="bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center space-x-2 shadow-sm"
         >
           <Plus className="h-5 w-5" />
           <span>Add Reminder</span>
         </button>
       </div>
 
-      {upcomingReminders.length > 0 && (
-        <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded-lg">
-          <h2 className="font-semibold text-yellow-800 mb-2">Upcoming This Week</h2>
-          <div className="space-y-2">
-            {upcomingReminders.map((reminder) => (
-              <div key={reminder.id} className="flex items-center justify-between bg-white p-3 rounded">
-                <div>
-                  <p className="font-semibold text-gray-800">{reminder.title}</p>
-                  <p className="text-sm text-gray-600">{formatDate(reminder.dueDate)}</p>
-                </div>
-                {reminder.amount && (
-                  <p className="font-bold text-purple-600">{formatCurrency(reminder.amount)}</p>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       <div>
-        <h2 className="text-2xl font-bold text-white mb-4">Active Reminders</h2>
+        <div className="flex items-center space-x-2 mb-6">
+          <Bell className="h-5 w-5 text-purple-600" />
+          <h2 className="text-xl font-bold text-gray-900">Upcoming</h2>
+        </div>
         {activeReminders.length === 0 ? (
-          <div className="bg-white/90 backdrop-blur-sm rounded-lg p-12 text-center shadow-lg">
+          <div className="bg-white rounded-xl p-12 text-center shadow-sm border border-gray-100">
             <Bell className="h-16 w-16 mx-auto text-gray-400 mb-4" />
             <p className="text-gray-500 text-lg">No active reminders</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {activeReminders.map((reminder) => {
-              const dueDate = new Date(reminder.dueDate);
-              const today = new Date();
-              const isOverdue = dueDate < today && !reminder.isCompleted;
-              const daysUntilDue = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-
-              return (
-                <div
-                  key={reminder.id}
-                  className={`bg-white/90 backdrop-blur-sm rounded-lg p-6 shadow-lg ${
-                    isOverdue ? 'border-2 border-red-500' : ''
-                  }`}
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <span
-                          className={`px-2 py-1 rounded text-xs font-semibold ${
-                            reminder.type === 'recharge'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-green-100 text-green-800'
-                          }`}
-                        >
-                          {reminder.type === 'recharge' ? 'Recharge' : 'Auto Pay'}
-                        </span>
-                        {reminder.recurring && (
-                          <span className="px-2 py-1 rounded text-xs font-semibold bg-purple-100 text-purple-800">
-                            Recurring
-                          </span>
-                        )}
-                      </div>
-                      <h3 className="text-xl font-bold text-gray-800">{reminder.title}</h3>
-                      <p className="text-sm text-gray-600 mt-1">{reminder.description}</p>
-                    </div>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleToggleComplete(reminder.id)}
-                        className="text-green-600 hover:text-green-800"
-                        title="Mark as completed"
-                      >
-                        <CheckCircle2 className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => handleEdit(reminder.id)}
-                        className="text-blue-600 hover:text-blue-800"
-                      >
-                        <Edit className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(reminder.id)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 pt-4 border-t">
-                    {reminder.amount && (
-                      <p className="text-lg font-bold text-purple-600">
-                        Amount: {formatCurrency(reminder.amount)}
-                      </p>
-                    )}
-                    <p className={`text-sm font-semibold ${isOverdue ? 'text-red-600' : 'text-gray-600'}`}>
-                      Due: {formatDate(reminder.dueDate)}
-                      {isOverdue && ' (Overdue)'}
-                      {!isOverdue && daysUntilDue >= 0 && ` (${daysUntilDue} day${daysUntilDue !== 1 ? 's' : ''} left)`}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {completedReminders.length > 0 && (
-        <div>
-          <h2 className="text-2xl font-bold text-white mb-4">Completed Reminders</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {completedReminders.map((reminder) => (
+          <div className="space-y-4">
+            {activeReminders.map((reminder) => (
               <div
                 key={reminder.id}
-                className="bg-white/90 backdrop-blur-sm rounded-lg p-6 shadow-lg opacity-75"
+                className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex items-center justify-between"
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-800 line-through">{reminder.title}</h3>
-                    <p className="text-sm text-gray-600 mt-1">{reminder.description}</p>
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                    <span className="text-purple-600 font-bold">
+                      {new Date(reminder.dueDate).getDate()}
+                    </span>
                   </div>
+                  <div>
+                    <p className="font-semibold text-gray-900">{reminder.title}</p>
+                    <div className="flex items-center space-x-2 mt-1">
+                      <span className="text-sm text-gray-500">
+                        {reminder.type === 'recharge' ? 'Recharge' : reminder.type === 'autopay' ? 'Subscription' : 'Bill'}
+                      </span>
+                      <span className="text-gray-400">•</span>
+                      <span className="text-sm text-gray-500">Due {formatDate(reminder.dueDate)}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4">
+                  {reminder.amount && (
+                    <p className="font-bold text-gray-900">{formatCurrency(reminder.amount)}</p>
+                  )}
+                  <button
+                    onClick={() => handleToggleComplete(reminder.id)}
+                    className="text-green-600 hover:text-green-800"
+                    title="Mark as completed"
+                  >
+                    <CheckCircle2 className="h-5 w-5" />
+                  </button>
+                  <button
+                    onClick={() => handleEdit(reminder.id)}
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    <Edit className="h-5 w-5" />
+                  </button>
                   <button
                     onClick={() => handleDelete(reminder.id)}
                     className="text-red-600 hover:text-red-800"
@@ -245,9 +176,20 @@ const Reminders = () => {
                     <Trash2 className="h-5 w-5" />
                   </button>
                 </div>
-                <p className="text-sm text-gray-500">Completed</p>
               </div>
             ))}
+          </div>
+        )}
+      </div>
+
+      {completedReminders.length > 0 && (
+        <div>
+          <div className="flex items-center space-x-2 mb-6">
+            <CheckCircle2 className="h-5 w-5 text-green-600" />
+            <h2 className="text-xl font-bold text-gray-900">Recently Paid</h2>
+          </div>
+          <div className="bg-white rounded-xl p-12 text-center shadow-sm border border-gray-100">
+            <p className="text-gray-500">No history yet.</p>
           </div>
         </div>
       )}

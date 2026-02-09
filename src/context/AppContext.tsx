@@ -56,7 +56,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const addLoan = (loan: Omit<Loan, 'id'>) => {
     setData(prev => ({
       ...prev,
-      loans: [...prev.loans, { ...loan, id: generateId() }],
+      loans: [...prev.loans, { ...loan, type: loan.type || 'borrowed', status: loan.status || 'pending', id: generateId() }],
     }));
   };
 
