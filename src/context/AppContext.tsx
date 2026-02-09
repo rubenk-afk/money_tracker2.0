@@ -24,10 +24,27 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [data, setData] = useState<AppData>(loadData());
+  const [data, setData] = useState<AppData>(() => {
+    const loaded = loadData();
+    // Remove any "momo" transactions on initial load
+    const cleanedData = {
+      ...loaded,
+      transactions: loaded.transactions.filter(t => 
+        !t.description?.toLowerCase().includes('momo')
+      ),
+    };
+    return cleanedData;
+  });
 
   useEffect(() => {
-    saveData(data);
+    // Filter out "momo" transactions before saving
+    const cleanedData = {
+      ...data,
+      transactions: data.transactions.filter(t => 
+        !t.description?.toLowerCase().includes('momo')
+      ),
+    };
+    saveData(cleanedData);
   }, [data]);
 
   const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);

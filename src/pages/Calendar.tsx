@@ -86,7 +86,7 @@ const Calendar = () => {
   const totalMonthSpending = days.reduce((sum, day) => sum + getDailyAmount(day), 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pt-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Spending Calendar</h1>
@@ -103,14 +103,14 @@ const Calendar = () => {
             });
             setIsModalOpen(true);
           }}
-          className="bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center space-x-2 shadow-sm"
+          className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors flex items-center space-x-2 shadow-sm"
         >
           <Plus className="h-5 w-5" />
           <span>Add Transaction</span>
         </button>
       </div>
 
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 overflow-hidden">
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={handlePreviousMonth}
@@ -129,53 +129,56 @@ const Calendar = () => {
           </button>
         </div>
 
-        <div className="grid grid-cols-7 gap-2 mb-2">
-          {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map((day) => (
-            <div key={day} className="text-center font-semibold text-gray-600 py-2 text-sm">
-              {day}
-            </div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-7 gap-2">
-          {emptyDays.map((_, index) => (
-            <div key={`empty-${index}`} className="aspect-square" />
-          ))}
-          {days.map((day) => {
-            const amount = getDailyAmount(day);
-            const isCurrentMonth = isSameMonth(day, currentDate);
-            const isTodayDate = isToday(day);
-
-            return (
-              <button
-                key={day.toISOString()}
-                onClick={() => handleDateClick(day)}
-                className={`aspect-square p-2 rounded-lg transition-all hover:bg-gray-50 ${
-                  isCurrentMonth ? 'bg-white' : 'bg-gray-50'
-                } ${isTodayDate ? 'ring-2 ring-purple-500' : ''}`}
-              >
-                <div className="flex flex-col h-full">
-                  <span
-                    className={`text-sm font-semibold mb-1 ${
-                      isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
-                    } ${isTodayDate ? 'text-purple-600' : ''}`}
-                  >
-                    {format(day, 'd')}
-                  </span>
-                  {amount > 0 && (
-                    <>
-                      <span className={`text-xs font-bold ${getTextColor(amount)}`}>
-                        {formatCurrency(amount)}
-                      </span>
-                      <div className={`mt-1 h-1 rounded ${getDayColor(amount).replace('bg-', 'bg-').replace('-100', '-500')}`} />
-                    </>
-                  )}
+        <div className="overflow-x-auto -mx-6 px-6">
+          <div className="min-w-[600px]">
+            <div className="grid grid-cols-7 gap-2 mb-2">
+              {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map((day) => (
+                <div key={day} className="text-center font-semibold text-gray-600 py-2 text-sm">
+                  {day}
                 </div>
-              </button>
-            );
-          })}
-        </div>
+              ))}
+            </div>
 
+            <div className="grid grid-cols-7 gap-2">
+              {emptyDays.map((_, index) => (
+                <div key={`empty-${index}`} className="aspect-square min-h-[60px]" />
+              ))}
+              {days.map((day) => {
+                const amount = getDailyAmount(day);
+                const isCurrentMonth = isSameMonth(day, currentDate);
+                const isTodayDate = isToday(day);
+
+                return (
+                  <button
+                    key={day.toISOString()}
+                    onClick={() => handleDateClick(day)}
+                    className={`aspect-square min-h-[60px] p-1.5 rounded-lg transition-all hover:bg-gray-50 ${
+                      isCurrentMonth ? 'bg-white' : 'bg-gray-50'
+                    } ${isTodayDate ? 'ring-2 ring-purple-500' : ''}`}
+                  >
+                    <div className="flex flex-col h-full">
+                      <span
+                        className={`text-xs font-semibold mb-0.5 ${
+                          isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
+                        } ${isTodayDate ? 'text-purple-600' : ''}`}
+                      >
+                        {format(day, 'd')}
+                      </span>
+                      {amount > 0 && (
+                        <>
+                          <span className={`text-[10px] font-bold truncate ${getTextColor(amount)}`}>
+                            {formatCurrency(amount)}
+                          </span>
+                          <div className={`mt-0.5 h-0.5 rounded ${getDayColor(amount).replace('bg-', 'bg-').replace('-100', '-500')}`} />
+                        </>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </div>
 
       <Modal
@@ -248,7 +251,7 @@ const Calendar = () => {
           <div className="flex space-x-4 pt-4">
             <button
               type="submit"
-              className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+              className="flex-1 bg-purple-600 text-white py-1.5 px-3 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors"
             >
               Add Transaction
             </button>
@@ -258,7 +261,7 @@ const Calendar = () => {
                 setIsModalOpen(false);
                 setSelectedDate(null);
               }}
-              className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+              className="flex-1 bg-gray-200 text-gray-800 py-1.5 px-3 rounded-lg text-sm font-medium hover:bg-gray-300 transition-colors"
             >
               Cancel
             </button>

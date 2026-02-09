@@ -66,7 +66,7 @@ const Dashboard = () => {
     .slice(0, 3);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 pt-4">
       {/* Header */}
       <div>
         <h1 className="text-4xl font-bold text-gray-900 mb-2">Dashboard</h1>

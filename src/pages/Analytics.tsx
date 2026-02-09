@@ -67,7 +67,7 @@ const Analytics = () => {
   const topCategories = categorySpending.slice(0, 5);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pt-4">
       <div>
         <h1 className="text-4xl font-bold text-gray-900 mb-2">Financial Analytics</h1>
         <p className="text-gray-600">Visualize your spending patterns and trends.</p>

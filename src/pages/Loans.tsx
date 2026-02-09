@@ -100,7 +100,7 @@ const Loans = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pt-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -112,7 +112,7 @@ const Loans = () => {
             resetForm();
             setIsModalOpen(true);
           }}
-          className="bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center space-x-2 shadow-sm"
+          className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors flex items-center space-x-2 shadow-sm"
         >
           <Plus className="h-5 w-5" />
           <span>Add Loan</span>
@@ -380,7 +380,7 @@ const Loans = () => {
           <div className="flex space-x-4 pt-4">
             <button
               type="submit"
-              className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+              className="flex-1 bg-purple-600 text-white py-1.5 px-3 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors"
             >
               {editingLoan ? 'Update' : 'Add'} Loan
             </button>
@@ -390,7 +390,7 @@ const Loans = () => {
                 setIsModalOpen(false);
                 resetForm();
               }}
-              className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+              className="flex-1 bg-gray-200 text-gray-800 py-1.5 px-3 rounded-lg text-sm font-medium hover:bg-gray-300 transition-colors"
             >
               Cancel
             </button>

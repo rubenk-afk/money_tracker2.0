@@ -15,6 +15,12 @@ export const loadData = (): AppData => {
           status: loan.status || 'pending',
         }));
       }
+      // Remove "momo" transactions
+      if (parsed.transactions) {
+        parsed.transactions = parsed.transactions.filter((t: any) => 
+          !t.description?.toLowerCase().includes('momo')
+        );
+      }
       return parsed;
     }
   } catch (error) {
